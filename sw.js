@@ -86,27 +86,43 @@ self.addEventListener("fetch", (event)=>{
     ); //respond with
 }); //fetch
 
-//send a message to the client - we will use to update data later
-function sendMessageToPWA(message) {
-    self.clients.matchAll().then((clients) => {
-        clients.forEach(client => {
-            client.postMessage(message);
-        });
-    });
-}
+// //send a message to the client - we will use to update data later
+// function sendMessageToPWA(message) {
+//     self.clients.matchAll().then((clients) => {
+//         clients.forEach(client => {
+//             client.postMessage(message);
+//         });
+//     });
+// }
 
-//send a message every 10 seconds
-setInterval(()=>{
-    sendMessageToPWA({type: "update", data: "New update avalible"});
-}, 10000);
+// //send a message every 10 seconds
+// setInterval(()=>{
+//     sendMessageToPWA({type: "update", data: "New update avalible"});
+// }, 10000);
 
-//listen for messages from the app
-self.addEventListener("message", (event)=>{
-    console.log("Service worker recieved a message", event.data);
+// //listen for messages from the app
+// self.addEventListener("message", (event)=>{
+//     console.log("Service worker recieved a message", event.data);
 
-    //you can respond back if needed
-    event.source.postMessage({
-        type: "response",
-        data: "Message recieved"
-    })
-})
+//     //you can respond back if needed
+//     event.source.postMessage({
+//         type: "response",
+//         data: "Message recieved"
+//     })
+// })
+
+//create a broadcast channel - name here needs to match the same in the sw
+const channel = new BroadcastChannel("sw_channel");
+
+//listen for messages
+channel.onmessage = (event) => {
+  console.log("Recived message in Service Worker:", event.data);
+  channel.postMessage("Service Worker received:" + event.data);
+};
+
+//send a message when the button is clicked
+document.getElementById("sendButton").addEventListener("click", ()=>{
+  const message = "Hello from SW!";
+  channel.postMessage(message);
+  console.log("Sent message from SW:", message);
+});
